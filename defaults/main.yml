@@ -1,0 +1,3 @@
+---
+lxc_path: /var/lib/lxc
+lxc_drop_containers: false
