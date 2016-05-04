@@ -1,5 +1,28 @@
 ---
 
+- name: Ensure SSH home dir exists
+  file:
+    path: '{{ ssh_home }}'
+    owner: '{{ lookup("env", "USER" }}'
+    mode: 0700
+
+- name: Ensure SSH config exists
+  file:
+    path: '{{ ssh_home }}'
+    state: touch
+    owner: '{{ lookup("env", "USER" }}'
+    mode: 0700
+
+- name: Ensure there is a public key
+  shell: ssh-keygen -f {{ ssh_home }}/id_rsa -N ''
+  creates: '{{ ssh_home }}/id_rsa.pub'
+
+- name: Ensure the keys have restricted permissions
+  file:
+    path: '{{ ssh_home }}/id_rsa.pub'
+    owner: '{{ lookup("env", "USER" }}'
+    mode: 0700
+
 - name: Ensure SSH to containers is permissive
   blockinfile:
     dest: '{{ lookup("env", "HOME" ) }}/.ssh/config'
@@ -32,7 +55,7 @@
 
 - name: Add your ssh key to the container
   authorized_key:
-    key: '{{ lookup("file", lookup("env", "HOME") + "/.ssh/id_rsa.pub") }}'
+    key: '{{ ssh_home }}/id_rsa.pub'
     path: '{{ lxc_path }}/{{ item.split(".")[0] }}/rootfs/root/.ssh/authorized_keys'
     user: root
   when: item.split('.')[-1] == 'lxc'

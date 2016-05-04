@@ -1,3 +1,4 @@
 ---
+ssh_home: '{{ lookup("env", "HOME" ) }}/.ssh'
 lxc_path: /var/lib/lxc
 lxc_drop_containers: false
