@@ -1,4 +1,5 @@
 ---
-ssh_home: '{{ lookup("env", "HOME" ) }}/.ssh'
+ssh_home: '{{ lookup("env", "HOME") }}/.ssh'
+owner: '{{ lookup("env", "USER") }}'
 lxc_path: /var/lib/lxc
 lxc_drop_containers: false
