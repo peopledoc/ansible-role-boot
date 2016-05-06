@@ -8,7 +8,7 @@
 
 - name: Ensure SSH config exists
   file:
-    path: '{{ ssh_home }}'
+    path: '{{ ssh_home }}/config'
     state: touch
     owner: '{{ owner }}'
     mode: 0700
