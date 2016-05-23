@@ -62,6 +62,14 @@
   when: item.split('.')[-1] == 'lxc'
   with_items: '{{ groups["all"] }}'
 
+- name: Wait for containers to start sshd
+  wait_for:
+    host: '{{ item }}'
+    port: 22
+    search_regex: OpenSSH
+  when: item.split('.')[-1] == 'lxc'
+  with_items: '{{ groups["all"] }}'
+
 - name: Install python in container
   raw: if ! hash python2; then apt-get update -y && apt-get install -y python; fi
   become: no
