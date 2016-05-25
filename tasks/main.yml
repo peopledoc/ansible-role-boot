@@ -12,6 +12,7 @@
     state: touch
     owner: '{{ owner }}'
     mode: 0700
+  changed_when: false
 
 - name: Ensure there is a public key
   shell: ssh-keygen -f {{ ssh_home }}/id_rsa -N ''
