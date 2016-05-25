@@ -20,9 +20,12 @@
 
 - name: Ensure the keys have restricted permissions
   file:
-    path: '{{ ssh_home }}/id_rsa.pub'
+    path: '{{ ssh_home }}/{{ item }}'
     owner: '{{ owner }}'
     mode: 0700
+  with_items:
+  - id_rsa.pub
+  - id_rsa
 
 - name: Ensure SSH to containers is permissive
   blockinfile:
