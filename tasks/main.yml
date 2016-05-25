@@ -28,6 +28,15 @@
   - id_rsa.pub
   - id_rsa
 
+# Just for debugging.
+- name: enable ssh-agent
+  shell: echo "ssh-agent = $(ssh-agent)"
+  when: '"SSH_AUTH_SOCK" in ansible_env'
+
+- name: enable ssh-agent
+  shell: eval $(ssh-agent)
+  when: '"SSH_AUTH_SOCK" in ansible_env'
+
 - name: Ensure SSH to containers is permissive
   blockinfile:
     dest: '{{ ssh_home }}/config'
