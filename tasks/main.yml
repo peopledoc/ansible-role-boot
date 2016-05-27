@@ -89,3 +89,12 @@
   delegate_to: '{{ item }}'
   when: item.split('.')[-1] == 'lxc'
   with_items: '{{ groups["all"] }}'
+          
+- name: Install sudo in container
+  apt:
+    name: sudo
+    update_cache: yes
+  become: no
+  delegate_to: '{{ item }}'
+  when: item.split('.')[-1] == 'lxc'
+  with_items: '{{ groups["all"] }}'
