@@ -1,9 +1,10 @@
 The purpose of this role is to start inventory hosts, instanciating them first
 if necessary. It will create / start any host which name ends in ``.lxc``.
 
-Note that you need lxc + dsnmasq to be properly configured. That means that you
-can create a container with internet access and that you can resolve it by
-``name.lxc``.
+Note that you need ``lxc``, ``dsnmasq``, and ``sudo`` to be properly
+configured. And ``lxc-python2`` (which require ``lxc-dev``) installed in your
+ansible environement. That means that you can create a container with internet
+access and that you can resolve it by ``name.lxc``.
 
 Consider this example inventory::
 

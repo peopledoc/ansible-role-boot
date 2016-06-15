@@ -15,18 +15,18 @@
   changed_when: false
 
 - name: Ensure there is a public key
-  shell: ssh-keygen -f {{ ssh_home }}/id_rsa -N ''
+  shell: ssh-keygen -f {{ ssh_private_key }} -N ''
   args:
-    creates: '{{ ssh_home }}/id_rsa.pub'
+    creates: '{{ ssh_private_key }}'
 
 - name: Ensure the keys have restricted permissions
   file:
-    path: '{{ ssh_home }}/{{ item }}'
+    path: '{{ item }}'
     owner: '{{ owner }}'
-    mode: 0700
+    mode: 0600
   with_items:
-  - id_rsa.pub
-  - id_rsa
+  - '{{ ssh_private_key }}'
+  - '{{ ssh_public_key }}'
 
 # Just for debugging.
 - name: enable ssh-agent
@@ -69,7 +69,7 @@
 
 - name: Add your ssh key to the container
   authorized_key:
-    key: '{{ lookup("file", ssh_home + "/id_rsa.pub" ) }}'
+    key: '{{ lookup("file", ssh_public_key ) }}'
     path: '{{ lxc_path }}/{{ item.split(".")[0] }}/rootfs/root/.ssh/authorized_keys'
     user: root
   when: item.split('.')[-1] == 'lxc'
