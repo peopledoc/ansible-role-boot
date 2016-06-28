@@ -1,0 +1,24 @@
+---
+
+- hosts: localhost
+  become: true
+  become_user: root
+  become_method: sudo
+  vars:
+    test_lxc: true
+    test_lxd: true
+  pre_tasks:
+  - add_host: name=testboot.lxc groups=testgroup
+    when: test_lxc
+  - add_host: name=testboot.lxd groups=testgroup
+    when: test_lxd
+  roles:
+  - .
+
+- hosts: testboot.lxc
+  tasks:
+  - shell: uname -a
+
+- hosts: testboot.lxd
+  tasks:
+  - shell: uname -a

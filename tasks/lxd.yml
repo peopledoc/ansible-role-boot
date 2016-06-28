@@ -1,0 +1,85 @@
+---
+
+- name: Ensure lxd is started
+  service:
+    name: lxd
+    state: started
+
+- name: Start lxd container
+  lxd_container:
+    name: '{{ item.split(".")[0] }}'
+    state: started
+    source:
+      type: image
+      mode: pull
+      server: https://images.linuxcontainers.org
+      protocol: lxd
+      alias: "ubuntu/xenial/amd64"
+    profiles: ['default']
+  when: item.split('.')[-1] == 'lxd'
+  with_items: '{{ groups["all"] }}'
+
+- name: Add lxd host with lxd connection to setup python & ssh
+  add_host:
+    name: '{{ item.split(".")[0] }}'
+    ansible_connection: lxd
+  when: item.split('.')[-1] == 'lxd'
+  with_items: '{{ groups["all"] }}'
+
+- name: Wait until container has internet
+  action: raw getent hosts google.com
+  register: lxd_internet
+  retries: 15
+  until: lxd_internet | success
+  become: no
+  delegate_to: '{{ item.split(".")[0] }}'
+  when: item.split('.')[-1] == 'lxd'
+  with_items: '{{ groups["all"] }}'
+
+- name: Refresh apt
+  raw: apt-get update
+  become: no
+  delegate_to: '{{ item.split(".")[0] }}'
+  when: item.split('.')[-1] == 'lxd'
+  with_items: '{{ groups["all"] }}'
+
+- name: Install sshd
+  raw: bash -c 'if ! hash sshd; then apt-get install -y openssh-server; fi'
+  become: no
+  delegate_to: '{{ item.split(".")[0] }}'
+  when: item.split('.')[-1] == 'lxd'
+  with_items: '{{ groups["all"] }}'
+
+- name: Install python in container
+  raw: if ! hash python2; then apt-get install -y python; fi
+  become: no
+  delegate_to: '{{ item.split(".")[0] }}'
+  when: item.split('.')[-1] == 'lxd'
+  with_items: '{{ groups["all"] }}'
+
+- name: Add your ssh key to the container
+  authorized_key:
+    key: '{{ lookup("file", ssh_public_key ) }}'
+    path: /root/.ssh/authorized_keys
+    user: root
+  become: no
+  delegate_to: '{{ item.split(".")[0] }}'
+  when: item.split('.')[-1] == 'lxd'
+  with_items: '{{ groups["all"] }}'
+
+- name: Install sudo in container
+  apt:
+    name: sudo
+    update_cache: yes
+  become: no
+  delegate_to: '{{ item.split(".")[0] }}'
+  when: item.split('.')[-1] == 'lxd'
+  with_items: '{{ groups["all"] }}'
+
+- name: Wait for containers to start sshd
+  wait_for:
+    host: '{{ item }}'
+    port: 22
+    search_regex: OpenSSH
+  when: item.split('.')[-1] == 'lxd'
+  with_items: '{{ groups["all"] }}'

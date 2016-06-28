@@ -1,0 +1,45 @@
+---
+
+- name: Start container
+  lxc_container:
+    name: '{{ item.split(".")[0] }}'
+    template: '{{ hostvars[item].get("lxc_template", "debian") }}'
+    state: started
+    template_options: '{{ hostvars[item].get("lxc_template_options", "") }}'
+    lxc_path: '{{ hostvars[item].get("lxc_path", lxc_path) }}'
+    container_log: true
+    container_log_level: DEBUG
+  when: item.split('.')[-1] == 'lxc'
+  with_items: '{{ groups["all"] }}'
+
+- name: Add your ssh key to the container
+  authorized_key:
+    key: '{{ lookup("file", ssh_public_key ) }}'
+    path: '{{ lxc_path }}/{{ item.split(".")[0] }}/rootfs/root/.ssh/authorized_keys'
+    user: root
+  when: item.split('.')[-1] == 'lxc'
+  with_items: '{{ groups["all"] }}'
+
+- name: Wait for containers to start sshd
+  wait_for:
+    host: '{{ item }}'
+    port: 22
+    search_regex: OpenSSH
+  when: item.split('.')[-1] == 'lxc'
+  with_items: '{{ groups["all"] }}'
+
+- name: Install python in container
+  raw: if ! hash python2; then apt-get update -y && apt-get install -y python; fi
+  become: no
+  delegate_to: '{{ item }}'
+  when: item.split('.')[-1] == 'lxc'
+  with_items: '{{ groups["all"] }}'
+
+- name: Install sudo in container
+  apt:
+    name: sudo
+    update_cache: yes
+  become: no
+  delegate_to: '{{ item }}'
+  when: item.split('.')[-1] == 'lxc'
+  with_items: '{{ groups["all"] }}'
