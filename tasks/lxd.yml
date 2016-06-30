@@ -16,6 +16,7 @@
       protocol: lxd
       alias: "ubuntu/xenial/amd64"
     profiles: ['default']
+    wait_for_ipv4_addresses: true
   when: item.split('.')[-1] == 'lxd'
   with_items: '{{ groups["all"] }}'
 
@@ -23,16 +24,6 @@
   add_host:
     name: '{{ item.split(".")[0] }}'
     ansible_connection: lxd
-  when: item.split('.')[-1] == 'lxd'
-  with_items: '{{ groups["all"] }}'
-
-- name: Wait until container has internet
-  action: raw getent hosts google.com
-  register: lxd_internet
-  retries: 15
-  until: lxd_internet | success
-  become: no
-  delegate_to: '{{ item.split(".")[0] }}'
   when: item.split('.')[-1] == 'lxd'
   with_items: '{{ groups["all"] }}'
 
