@@ -14,7 +14,7 @@
       mode: pull
       server: https://images.linuxcontainers.org
       protocol: lxd
-      alias: "ubuntu/xenial/amd64"
+      alias: '{{ hostvars[item].get("lxd_alias", "ubuntu/xenial/amd64") }}'
     profiles: ['default']
     wait_for_ipv4_addresses: true
   when: item.split('.')[-1] == 'lxd'
