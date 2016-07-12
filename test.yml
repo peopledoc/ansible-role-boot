@@ -12,13 +12,11 @@
     when: test_lxc
   - add_host: name=testboot.lxd groups=testgroup
     when: test_lxd
+  - add_host: name=testbootalpine.lxd groups=testgroup lxd_alias=alpine/3.4/amd64
+    when: test_lxd
   roles:
   - .
 
-- hosts: testboot.lxc
-  tasks:
-  - shell: uname -a
-
-- hosts: testboot.lxd
+- hosts: testgroup
   tasks:
   - shell: uname -a

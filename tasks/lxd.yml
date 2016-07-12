@@ -27,26 +27,44 @@
   when: item.split('.')[-1] == 'lxd'
   with_items: '{{ groups["all"] }}'
 
-- name: Refresh apt
-  raw: apt-get update
+- name: Refresh packages
+  raw: if hash apt-get; then apt-get update; elif hash apk; then apk update; fi
   become: no
   delegate_to: '{{ item.split(".")[0] }}'
   when: item.split('.')[-1] == 'lxd'
   with_items: '{{ groups["all"] }}'
 
 - name: Install sshd
-  raw: bash -c 'if ! hash sshd; then apt-get install -y openssh-server; fi'
+  raw: if ! hash sshd; then if hash apt-get; then apt-get install -y openssh-server; elif hash apk; then apk add openssh; fi; fi
   become: no
   delegate_to: '{{ item.split(".")[0] }}'
   when: item.split('.')[-1] == 'lxd'
   with_items: '{{ groups["all"] }}'
 
 - name: Install python in container
-  raw: if ! hash python2; then apt-get install -y python; fi
+  raw: if ! hash python2; then if hash apt-get; then apt-get install -y python; elif hash apk; then apk add python; fi; fi
   become: no
   delegate_to: '{{ item.split(".")[0] }}'
   when: item.split('.')[-1] == 'lxd'
   with_items: '{{ groups["all"] }}'
+
+- name: Gather facts
+  setup:
+  become: no
+  delegate_to: '{{ item.split(".")[0] }}'
+  when: item.split('.')[-1] == 'lxd'
+  with_items: '{{ groups["all"] }}'
+  register: setup
+
+- name: Start and enable sshd
+  service:
+    name: sshd
+    state: started
+    enabled: yes
+  become: no
+  delegate_to: '{{ item["item"].split(".")[0] }}'
+  when: item['item'].split('.')[-1] == 'lxd' and item['ansible_facts']['ansible_os_family'] == 'Alpine'
+  with_items: '{{ setup.results }}'
 
 - name: Add your ssh key to the container
   authorized_key:
@@ -59,9 +77,7 @@
   with_items: '{{ groups["all"] }}'
 
 - name: Install sudo in container
-  apt:
-    name: sudo
-    update_cache: yes
+  raw: if hash apt-get; then apt-get install -y sudo; elif hash apk; then apk add sudo; fi
   become: no
   delegate_to: '{{ item.split(".")[0] }}'
   when: item.split('.')[-1] == 'lxd'
