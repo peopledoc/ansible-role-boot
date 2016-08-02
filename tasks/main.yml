@@ -60,7 +60,20 @@
   when: lxc_drop_containers and item.split('.')[-1] in ('lxc', 'lxd')
   with_items: '{{ groups["all"] }}'
 
+- name: Checking if lxc is installed
+  shell: hash lxc-create
+  register: lxc_installed
+  ignore_errors: yes
+
+- name: Checking if lxd is installed
+  shell: hash lxd
+  register: lxd_installed
+  ignore_errors: yes
+
 - include: lxc.yml
   tags: lxc
+  when: lxc_installed|success
+
 - include: lxd.yml
   tags: lxd
+  when: lxd_installed|success
