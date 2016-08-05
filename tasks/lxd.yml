@@ -22,38 +22,36 @@
 
 - name: Add lxd host with lxd connection to setup python & ssh
   add_host:
-    name: '{{ item.split(".")[0] }}'
+    name: 'novafloss.boot-lxd-{{ item.split(".")[0] }}'
+    ansible_ssh_host: '{{ item.split(".")[0] }}'
     ansible_connection: lxd
-  when: item.split('.')[-1] == 'lxd'
+    group: 'novafloss.boot-lxd'
+  when: item.endswith('.lxd')
   with_items: '{{ groups["all"] }}'
 
 - name: Refresh packages
   raw: if hash apt-get; then apt-get update; elif hash apk; then apk update; fi
   become: no
-  delegate_to: '{{ item.split(".")[0] }}'
-  when: item.split('.')[-1] == 'lxd'
-  with_items: '{{ groups["all"] }}'
+  delegate_to: '{{ item }}'
+  with_items: '{{ groups["novafloss.boot-lxd"] }}'
 
 - name: Install sshd
   raw: if ! hash sshd; then if hash apt-get; then apt-get install -y openssh-server; elif hash apk; then apk add openssh; fi; fi
   become: no
-  delegate_to: '{{ item.split(".")[0] }}'
-  when: item.split('.')[-1] == 'lxd'
-  with_items: '{{ groups["all"] }}'
+  delegate_to: '{{ item }}'
+  with_items: '{{ groups["novafloss.boot-lxd"] }}'
 
 - name: Install python in container
   raw: if ! hash python2; then if hash apt-get; then apt-get install -y python; elif hash apk; then apk add python; fi; fi
   become: no
-  delegate_to: '{{ item.split(".")[0] }}'
-  when: item.split('.')[-1] == 'lxd'
-  with_items: '{{ groups["all"] }}'
+  delegate_to: '{{ item }}'
+  with_items: '{{ groups["novafloss.boot-lxd"] }}'
 
 - name: Gather facts
   setup:
   become: no
-  delegate_to: '{{ item.split(".")[0] }}'
-  when: item.split('.')[-1] == 'lxd'
-  with_items: '{{ groups["all"] }}'
+  delegate_to: '{{ item }}'
+  with_items: '{{ groups["novafloss.boot-lxd"] }}'
   register: setup
 
 - name: Start and enable sshd
@@ -62,9 +60,8 @@
     state: started
     enabled: yes
   become: no
-  delegate_to: '{{ item["item"].split(".")[0] }}'
-  when: item['item'].split('.')[-1] == 'lxd' and item['ansible_facts']['ansible_os_family'] == 'Alpine'
-  with_items: '{{ setup.results }}'
+  delegate_to: '{{ item }}'
+  with_items: '{{ groups["novafloss.boot-lxd"] }}'
 
 - name: Add your ssh key to the container
   authorized_key:
@@ -72,21 +69,22 @@
     path: /root/.ssh/authorized_keys
     user: root
   become: no
-  delegate_to: '{{ item.split(".")[0] }}'
-  when: item.split('.')[-1] == 'lxd'
-  with_items: '{{ groups["all"] }}'
+  delegate_to: '{{ item }}'
+  with_items: '{{ groups["novafloss.boot-lxd"] }}'
 
 - name: Install sudo in container
   raw: if hash apt-get; then apt-get install -y sudo; elif hash apk; then apk add sudo; fi
   become: no
-  delegate_to: '{{ item.split(".")[0] }}'
-  when: item.split('.')[-1] == 'lxd'
-  with_items: '{{ groups["all"] }}'
+  delegate_to: '{{ item }}'
+  with_items: '{{ groups["novafloss.boot-lxd"] }}'
+
+- debug: msg={{ item.replace("novafloss.boot-lxd-", "") }}
+  with_items: '{{ groups["novafloss.boot-lxd"] }}'
 
 - name: Wait for containers to start sshd
   wait_for:
     host: '{{ item }}'
     port: 22
     search_regex: OpenSSH
-  when: item.split('.')[-1] == 'lxd'
+  when: item.endswith('lxd')
   with_items: '{{ groups["all"] }}'
