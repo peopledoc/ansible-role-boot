@@ -78,9 +78,6 @@
   delegate_to: '{{ item }}'
   with_items: '{{ groups["novafloss.boot-lxd"] }}'
 
-- debug: msg={{ item.replace("novafloss.boot-lxd-", "") }}
-  with_items: '{{ groups["novafloss.boot-lxd"] }}'
-
 - name: Wait for containers to start sshd
   wait_for:
     host: '{{ item }}'
