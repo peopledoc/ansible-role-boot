@@ -12,3 +12,7 @@ install:
 
 script:
 - sg lxd '~/.ansible-env/bin/ansible-playbook -v test.yml -e test_lxc=0'
+
+branches:
+  except:
+  - master

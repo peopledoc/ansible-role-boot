@@ -74,6 +74,8 @@
   tags: lxc
   when: lxc_installed|success
 
-- include: lxd.yml
-  tags: lxd
-  when: lxd_installed|success
+# Disabled until Ansible 2.2 is released because that requires a module that's
+# not in 2.1. Use the lxd branch of ansible-role-boot if you need lxd support.
+#- include: lxd.yml
+#  tags: lxd
+#  when: lxd_installed|success
