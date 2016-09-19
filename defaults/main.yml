@@ -3,5 +3,4 @@ ssh_home: '{{ lookup("env", "HOME") }}/.ssh'
 ssh_private_key: '{{ ssh_home }}/id_rsa'
 ssh_public_key: '{{ ssh_private_key }}.pub'
 owner: '{{ lookup("env", "USER") }}'
-lxc_path: /var/lib/lxc
-lxc_drop_containers: false
+ssh_insecure: []

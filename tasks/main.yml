@@ -41,39 +41,9 @@
   blockinfile:
     dest: '{{ ssh_home }}/config'
     block: |
-      Host *.lxc
+      Host {{ item }}
           # No need for security for disposable test containers
           UserKnownHostsFile /dev/null
           StrictHostKeyChecking no
           User root
-      Host *.lxd
-          # No need for security for disposable test containers
-          UserKnownHostsFile /dev/null
-          StrictHostKeyChecking no
-          User root
-
-- name: Drop containers
-  lxc_container:
-    name: '{{ item.split(".")[0] }}'
-    state: absent
-    lxc_path: '{{ hostvars[item].get("lxc_path", lxc_path) }}'
-  when: lxc_drop_containers and item.split('.')[-1] in ('lxc', 'lxd')
-  with_items: '{{ groups["all"] }}'
-
-- name: Checking if lxc is installed
-  shell: hash lxc-create
-  register: lxc_installed
-  ignore_errors: yes
-
-- name: Checking if lxd is installed
-  shell: hash lxd
-  register: lxd_installed
-  ignore_errors: yes
-
-- include: lxc.yml
-  tags: lxc
-  when: lxc_installed|success
-
-- include: lxd.yml
-  tags: lxd
-  when: lxd_installed|success
+  with_items: ssh_insecure
