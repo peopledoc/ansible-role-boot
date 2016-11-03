@@ -29,10 +29,14 @@
   with_items: '{{ groups["all"] }}'
 
 - name: Install python in container
-  raw: if ! hash python2; then apt-get update -y && apt-get install -y python; fi
+  raw: >
+    if ! hash python2;
+      then apt-get update -y && apt-get install -y python;
+    fi
   become: no
   delegate_to: '{{ item }}'
   when: item.split('.')[-1] == 'lxc'
+  changed_when: false
   with_items: '{{ groups["all"] }}'
 
 - name: Install sudo in container
