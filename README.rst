@@ -1,3 +1,5 @@
+.. warn:: This role has been deprecated in favor of ansible-boot-lxc.
+
 The purpose of this role is to start inventory hosts, instanciating them first
 if necessary. It will create / start any host which name ends in ``.lxc``.
 
